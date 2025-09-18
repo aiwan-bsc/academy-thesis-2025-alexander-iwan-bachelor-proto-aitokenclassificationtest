@@ -1,0 +1,15 @@
+{
+  "require": {
+    "codewithkyrian/transformers": "^0.6.1",
+    "mpdf/mpdf": "^8.2",
+    "smalot/pdfparser": "^2.12",
+    "setasign/fpdf": "1.8.*",
+    "setasign/fpdi": "^2.5"
+
+  },
+  "config": {
+    "allow-plugins": {
+      "codewithkyrian/platform-package-installer": true
+    }
+  }
+}

@@ -4,6 +4,8 @@
     use Codewithkyrian\Transformers\Transformers;
     use Smalot\PdfParser\Parser;
     use function codewithkyrian\transformers\pipelines\pipeline;
+    require 'AiModel.php';
+    require 'piiSensitiveNerGerman.php';
 
     require 'PDFToolkit.php';
 
@@ -32,14 +34,19 @@
             ->apply();*/
 
     if(isset($_POST['eingabe'])) {
-        $pdfToolkit = new PDFToolkit();
+        $pdfToolkit = new PDFToolkit(new piiSensitiveNerGerman());
         echo '<pre>'.var_dump($pdfToolkit->inputIntoAI($_POST['eingabe'])).'</pre>';
     }
 
     if(isset($_FILES['pdfFile']['name']) && $_FILES['pdfFile']['name'] !== '') {
         var_dump($_FILES['pdfFile']['name']);
         //Schritt 1: Die Datei in den richtigen Ordner bewegen
-        $pdfToolkit = new PdfToolkit($_FILES['pdfFile']);
+        try {
+            $pdfToolkit = new PdfToolkit(new piiSensitiveNerGerman(), $_FILES['pdfFile']);
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            return;
+        }
 
         // Schritt 2: Text aus dem PDF extrahieren
        /* try {
@@ -54,15 +61,21 @@
             $aiResponse = $pdfToolkit->inputIntoAI();
         } catch (Exception $e) {
             echo $e->getMessage();
+            return;
         }
 
         echo "KI-Output:<br>";
-        echo var_dump($aiResponse);
+        //echo var_dump($aiResponse);
 
         //Schritt 4: Text anpassen
         //echo $helper->group_entities($entities);
         echo '<pre>'.$pdfToolkit->getCensoredTextFromWordList($aiResponse).'</pre>';
-
-
-
+        /*try {
+            $pdfToolkit->createCensoredPdfWithBlacklist($aiResponse);
+        } catch (\Mpdf\MpdfException
+                |\setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException
+                |\setasign\Fpdi\PdfParser\Type\PdfTypeException
+                |\setasign\Fpdi\PdfParser\PdfParserException $e) {
+            echo $e->getMessage();
+        }*/
     }

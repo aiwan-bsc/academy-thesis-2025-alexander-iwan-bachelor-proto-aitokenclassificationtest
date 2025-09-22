@@ -1,29 +1,29 @@
 <?php
 
+use Mpdf\MpdfException;
+use Mpdf\Output\Destination;
 use Smalot\PdfParser\Parser;
 use Codewithkyrian\Transformers\Transformers;
 use function codewithkyrian\transformers\pipelines\pipeline;
 
 class PDFToolkit
 {
-    private const SAVE_PATH = __DIR__ ."/uploads/";
-    private const AI_MODEL = 'pii-sensitive-ner-german_onnx';
-    private const AI_MODEL_PATH = __DIR__ .'/Models/';
+    private const string SAVE_PATH = __DIR__ ."/uploads/";
     private array $pdf = array(
         'filePath'  => '',
         'text'      => ''
     );
+    private AiModel $aiModel;
 
-    public function __construct(?array $pdfFile = null)
+    /**
+     * @throws Exception
+     */
+    public function __construct(AiModel $givenModel, ?array $pdfFile = null)
     {
-        Transformers::setup()
-            ->setCacheDir(self::AI_MODEL_PATH)
-            ->apply();
-
         if ($pdfFile !== null) {
-            var_dump($pdfFile);
             $this->loadPDF($pdfFile);
         }
+        $this->aiModel = $givenModel;
     }
 
     /**
@@ -72,12 +72,12 @@ class PDFToolkit
     public function inputIntoAI(?string $text = null) :array
     {
         if(!is_null($text)){
-            return $this->getAIResponse($text);
+            return $this->aiModel->getOutput($text);
         }else{
             if($this->pdf['text'] !== ''){
-                return $this->getAIResponse($this->pdf['text']);
+                return $this->aiModel->getOutput($this->pdf['text']);
             }
-            return $this->getAIResponse($this->extractTextFromPdf());
+            return $this->aiModel->getOutput($this->extractTextFromPdf());
         }
     }
 
@@ -88,76 +88,31 @@ class PDFToolkit
         }
         return str_ireplace($blacklist, '(zensiert)', $this->pdf['text']);
     }
+
+
     /**
-     * @throws Exception
+     * @throws MpdfException
      */
-    private function getAIResponse(string $text) :array
+
+    public function createCensoredPdfWithBlacklist(array $blacklist) :void
     {
-        try {
-            $pipe = pipeline("ner", self::AI_MODEL, false);
-            return $this->parseAIResponse($pipe($text));
-        } catch (\Codewithkyrian\Transformers\Exceptions\UnsupportedTaskException $e) {
-            throw new Exception($e->getMessage());
-        }
-    }
+        $searchTerms = array_values($blacklist);
 
-    private function parseAIResponse(array $response) :array
-    {
-        if (empty($response)) {
-            return [];
+        $replacementTerms = [];
+        foreach ($searchTerms as $term) {
+            $replacementTerms[] = str_repeat('█', strlen($term));
         }
 
-        $groupedEntities = [];
-        $currentEntity = null;
+        $mpdf = new \Mpdf\Mpdf();
 
-        // Wir müssen die Indizes des $entities-Arrays neu aufbauen,
-        // da die Original-Indizes (33, 34, 35...) Lücken haben.
-        $response = array_values($response);
+        //OverWrite funktioniert nur mit von MPDF erstellen PDFs!
+        $mpdf->OverWrite(
+            $this->pdf['filePath'],
+            $searchTerms,
+            $replacementTerms,
+            Destination::FILE,
+            self::SAVE_PATH . 'zensiert.pdf',
 
-        foreach ($response as $i => $entity) {
-            $entityType = $entity['entity'];
-            $word = $entity['word'];
-            $index = $entity['index'];
-
-            // 'O' bedeutet "Outside" und ist keine relevante Entität.
-            // Wir filtern auch "leere" Tokens wie einzelne Satzzeichen oder den Bullet-Point '●'.
-            if ($entityType === 'O' || empty(trim($word, " \t\n\r\0\x0B.,;:-_●"))) {
-                continue;
-            }
-
-            // Ist dies der Beginn einer neuen Entität?
-            if ($currentEntity === null) {
-                $currentEntity = [
-                    'type' => $entityType,
-                    'text' => $word,
-                    'last_index' => $index
-                ];
-            }
-            // Gehört dieses Token zur vorherigen Entität?
-            else if ($entityType === $currentEntity['type'] && $index === $currentEntity['last_index'] + 1) {
-                $currentEntity['text'] .= $word; // Wort anhängen
-                $currentEntity['last_index'] = $index; // Index aktualisieren
-            }
-            // Andernfalls ist die alte Entität beendet und eine neue beginnt.
-            else {
-                // Speichere die abgeschlossene Entität
-                $groupedEntities[] = trim($currentEntity['text']);
-
-                // Beginne die neue Entität
-                $currentEntity = [
-                    'type' => $entityType,
-                    'text' => $word,
-                    'last_index' => $index
-                ];
-            }
-        }
-
-        // Nicht vergessen, die allerletzte Entität nach der Schleife hinzuzufügen
-        if ($currentEntity !== null) {
-            $groupedEntities[] = trim($currentEntity['text']);
-        }
-
-        // Duplikate entfernen und zurückgeben
-        return array_unique($groupedEntities);
+        );
     }
 }

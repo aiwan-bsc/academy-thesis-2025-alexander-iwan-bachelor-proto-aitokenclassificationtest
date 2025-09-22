@@ -3,9 +3,10 @@
     require 'vendor/autoload.php';
     use Codewithkyrian\Transformers\Transformers;
     use Smalot\PdfParser\Parser;
-    use function codewithkyrian\transformers\pipelines\pipeline;
+
     require 'AiModel.php';
     require 'piiSensitiveNerGerman.php';
+    require 'piiranha.php';
 
     require 'PDFToolkit.php';
 
@@ -34,7 +35,7 @@
             ->apply();*/
 
     if(isset($_POST['eingabe'])) {
-        $pdfToolkit = new PDFToolkit(new piiSensitiveNerGerman());
+        $pdfToolkit = new PDFToolkit(new piiranha());
         echo '<pre>'.var_dump($pdfToolkit->inputIntoAI($_POST['eingabe'])).'</pre>';
     }
 
@@ -42,7 +43,7 @@
         var_dump($_FILES['pdfFile']['name']);
         //Schritt 1: Die Datei in den richtigen Ordner bewegen
         try {
-            $pdfToolkit = new PdfToolkit(new piiSensitiveNerGerman(), $_FILES['pdfFile']);
+            $pdfToolkit = new PdfToolkit(new piiranha(), $_FILES['pdfFile']);
         } catch (Exception $e) {
             echo $e->getMessage();
             return;
@@ -58,18 +59,23 @@
 
         //Schritt 3: Text mit KI prüfen lassen
         try{
+
             $aiResponse = $pdfToolkit->inputIntoAI();
+            $pdfToolkit->setAiModel(new piiSensitiveNerGerman());
+
+            $aiResponse2 = $pdfToolkit->inputIntoAI();
         } catch (Exception $e) {
             echo $e->getMessage();
             return;
         }
 
         echo "KI-Output:<br>";
-        //echo var_dump($aiResponse);
+        echo var_dump($aiResponse);
+        echo var_dump($aiResponse2);
 
         //Schritt 4: Text anpassen
         //echo $helper->group_entities($entities);
-        echo '<pre>'.$pdfToolkit->getCensoredTextFromWordList($aiResponse).'</pre>';
+       // echo '<pre>'.$pdfToolkit->getCensoredTextFromWordList($aiResponse).'</pre>';
         /*try {
             $pdfToolkit->createCensoredPdfWithBlacklist($aiResponse);
         } catch (\Mpdf\MpdfException

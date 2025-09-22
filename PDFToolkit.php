@@ -25,6 +25,10 @@ class PDFToolkit
         }
         $this->aiModel = $givenModel;
     }
+    public function setAiModel(AiModel $aiModel): void
+    {
+        $this->aiModel = $aiModel;
+    }
 
     /**
      * @throws Exception

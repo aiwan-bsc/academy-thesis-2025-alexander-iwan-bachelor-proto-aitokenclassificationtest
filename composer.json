@@ -11,5 +11,13 @@
     "allow-plugins": {
       "codewithkyrian/platform-package-installer": true
     }
+  },
+  "scripts": {
+    "pre-install-cmd": [
+      "command -v pdftohtml >/dev/null 2>&1 || { echo >&2 'Error: Poppler utility \"pdftohtml\" is not installed. Please install poppler-utils to continue.'; exit 1; }"
+    ],
+    "pre-update-cmd": [
+      "command -v pdftohtml >/dev/null 2>&1 || { echo >&2 'Error: Poppler utility \"pdftohtml\" is not installed. Please install poppler-utils to continue.'; exit 1; }"
+    ]
   }
 }

@@ -97,26 +97,39 @@ class PDFToolkit
     /**
      * @throws MpdfException
      */
-
     public function createCensoredPdfWithBlacklist(array $blacklist) :void
     {
-        $searchTerms = array_values($blacklist);
+        // 1. Mit "pdftohtml [input] [output] -c -s" Befehl die PDF-Datei zu HTML konvertieren
+        // ---- ENTWEDER ----
+        // 2. HTML in MPDF laden
+        // 3. MPDF Overwrite nutzen
 
-        $replacementTerms = [];
-        foreach ($searchTerms as $term) {
-            $replacementTerms[] = str_repeat('█', strlen($term));
-        }
+        // ---- ODER ----
+        // 2. HTML direkt bearbeiten (ohne Bilder etc kaputt zu machen)
+        // 3. MPDF mit neuem HTML füttern
+
+        // 1.
+        $command = sprintf("pdftohtml -c -s %s %s", $this->pdf['filePath'], self::SAVE_PATH."output.html");
+        print($command);
+        exec($command);
+
+        // 2.
+        $newPDF = new Mpdf\Mpdf();
+        $newPDF->percentSubset = 0;
+
+        $newPDF->WriteHTML(file_get_contents(self::SAVE_PATH."output-html.html"));
+        $newPDF->Output(self::SAVE_PATH."output_zensiert.pdf", "F");
+
+        $replacementArray = array_map(function ($blacklistedString) {
+            return str_repeat("-", strlen($blacklistedString));
+        }, $blacklist);
 
         $mpdf = new \Mpdf\Mpdf();
-
-        //OverWrite funktioniert nur mit von MPDF erstellen PDFs!
-        $mpdf->OverWrite(
-            $this->pdf['filePath'],
-            $searchTerms,
-            $replacementTerms,
-            Destination::FILE,
-            self::SAVE_PATH . 'zensiert.pdf',
-
-        );
+        $mpdf->OverWrite(self::SAVE_PATH."output_zensiert.pdf",
+            $blacklist,
+            $replacementArray,
+            "F",
+            self::SAVE_PATH.basename($this->pdf['filePath'], '.pdf')."_zensiert.pdf");
+        //$mpdf->Output(self::SAVE_PATH."output_zensiert2.pdf", "F");
     }
 }

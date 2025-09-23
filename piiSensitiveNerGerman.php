@@ -19,12 +19,13 @@ class piiSensitiveNerGerman implements AiModel
         try {
             $pipe = pipeline("ner", $this->name, false);
             return $this->groupAiEntities($pipe($input));
+            //return $pipe($input);
         } catch (\Codewithkyrian\Transformers\Exceptions\UnsupportedTaskException $e) {
             throw new Exception($e->getMessage());
         }
     }
 
-    public string $name = 'pii-sensitive-ner-german_onnx' {
+    public string $name = 'piiSensitiveNerGerman_Onnx' {
         get {
             return $this->name;
         }

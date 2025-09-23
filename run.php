@@ -43,27 +43,24 @@
         var_dump($_FILES['pdfFile']['name']);
         //Schritt 1: Die Datei in den richtigen Ordner bewegen
         try {
-            $pdfToolkit = new PdfToolkit(new piiranha(), $_FILES['pdfFile']);
+            $pdfToolkit = new PdfToolkit(new piiSensitiveNerGerman(), $_FILES['pdfFile']);
         } catch (Exception $e) {
             echo $e->getMessage();
             return;
         }
 
         // Schritt 2: Text aus dem PDF extrahieren
-       /* try {
+        try {
             $pdfText = $pdfToolkit->extractTextFromPdf();
         } catch (Exception $e) {
             echo $e->getMessage();
         }
-        echo '<pre>'.$pdfText.'</pre>';*/
+        echo '<pre>'.$pdfText.'</pre>';
 
         //Schritt 3: Text mit KI prüfen lassen
         try{
 
             $aiResponse = $pdfToolkit->inputIntoAI();
-            $pdfToolkit->setAiModel(new piiSensitiveNerGerman());
-
-            $aiResponse2 = $pdfToolkit->inputIntoAI();
         } catch (Exception $e) {
             echo $e->getMessage();
             return;
@@ -71,17 +68,16 @@
 
         echo "KI-Output:<br>";
         echo var_dump($aiResponse);
-        echo var_dump($aiResponse2);
 
         //Schritt 4: Text anpassen
         //echo $helper->group_entities($entities);
        // echo '<pre>'.$pdfToolkit->getCensoredTextFromWordList($aiResponse).'</pre>';
-        /*try {
+        try {
             $pdfToolkit->createCensoredPdfWithBlacklist($aiResponse);
         } catch (\Mpdf\MpdfException
                 |\setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException
                 |\setasign\Fpdi\PdfParser\Type\PdfTypeException
                 |\setasign\Fpdi\PdfParser\PdfParserException $e) {
             echo $e->getMessage();
-        }*/
+        }
     }

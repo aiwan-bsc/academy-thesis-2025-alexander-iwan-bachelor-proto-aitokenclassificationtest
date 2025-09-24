@@ -6,6 +6,7 @@ use function codewithkyrian\transformers\pipelines\pipeline;
 class piiranha implements AiModel
 {
 
+    private const int INPUT_TOKEN_SPLIT = 100;
     /**
      * @throws Exception
      */
@@ -16,8 +17,28 @@ class piiranha implements AiModel
             ->apply();
 
         try {
+            $inputArray = array();
+
+            $inputArrayPrepare = explode(" ", $input);
+            $stringBuffer = '';
+            for($i = 0; $i < count($inputArrayPrepare); $i++) {
+                $stringBuffer .= $inputArrayPrepare[$i]." ";
+                if($i % self::INPUT_TOKEN_SPLIT === 0){
+                    $inputArray[] = $stringBuffer;
+                    $stringBuffer = '';
+                }
+            }
+
+            $output = array();
             $pipe = pipeline("ner", $this->name, false);
-            return $this->groupAiEntities($pipe($input));
+
+            foreach ($inputArray as $inputFromArray) {
+                foreach($pipe($inputFromArray) as $aiSingleOutput){
+                    $output[] = $aiSingleOutput;
+                }
+            }
+
+            return $this->groupAiEntities($output);
         } catch (\Codewithkyrian\Transformers\Exceptions\UnsupportedTaskException $e) {
             throw new Exception($e->getMessage());
         }

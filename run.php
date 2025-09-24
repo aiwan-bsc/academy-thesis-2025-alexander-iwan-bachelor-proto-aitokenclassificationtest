@@ -20,7 +20,7 @@
                         <label for="eingabe">Eingabe</label>
                     </td>
                     <td>
-                        <textarea name="eingabe" id="eingabe"> </textarea><br>
+                        <textarea name="eingabe" id="eingabe"></textarea><br>
                         <input type="file" name="pdfFile" id="pdfFile"><br>
                         <button type="submit">Abschicken</button>
                     </td>
@@ -34,16 +34,17 @@
             ->setCacheDir(__DIR__ .'/Models/')
             ->apply();*/
 
-    if(isset($_POST['eingabe'])) {
+    /*if(isset($_POST['eingabe'])) {
         $pdfToolkit = new PDFToolkit(new piiranha());
         echo '<pre>'.var_dump($pdfToolkit->inputIntoAI($_POST['eingabe'])).'</pre>';
-    }
+        die();
+    }*/
 
     if(isset($_FILES['pdfFile']['name']) && $_FILES['pdfFile']['name'] !== '') {
-        var_dump($_FILES['pdfFile']['name']);
+
         //Schritt 1: Die Datei in den richtigen Ordner bewegen
         try {
-            $pdfToolkit = new PdfToolkit(new piiSensitiveNerGerman(), $_FILES['pdfFile']);
+            $pdfToolkit = new PdfToolkit(new piiranha(), $_FILES['pdfFile']);
         } catch (Exception $e) {
             echo $e->getMessage();
             return;
@@ -54,12 +55,11 @@
             $pdfText = $pdfToolkit->extractTextFromPdf();
         } catch (Exception $e) {
             echo $e->getMessage();
+            return;
         }
         echo '<pre>'.$pdfText.'</pre>';
-
         //Schritt 3: Text mit KI prüfen lassen
         try{
-
             $aiResponse = $pdfToolkit->inputIntoAI();
         } catch (Exception $e) {
             echo $e->getMessage();
@@ -67,7 +67,7 @@
         }
 
         echo "KI-Output:<br>";
-        echo var_dump($aiResponse);
+        var_dump($aiResponse);
 
         //Schritt 4: Text anpassen
         //echo $helper->group_entities($entities);

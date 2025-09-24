@@ -9,6 +9,8 @@ use function codewithkyrian\transformers\pipelines\pipeline;
 class PDFToolkit
 {
     private const string SAVE_PATH = __DIR__ ."/uploads/";
+    private const string TEMP_PATH = __DIR__ ."/temp/";
+    private const string OUTPUT_PATH = __DIR__ ."/uploads/output/";
     private array $pdf = array(
         'filePath'  => '',
         'text'      => ''
@@ -105,11 +107,11 @@ class PDFToolkit
         // 3. MPDF Overwrite nutzen
 
         // ---- ODER ----
-        // 2. HTML direkt bearbeiten (ohne Bilder etc kaputt zu machen)
-        // 3. MPDF mit neuem HTML füttern
+        // b. HTML direkt bearbeiten (ohne Bilder etc kaputt zu machen)
+        // c. MPDF mit neuem HTML füttern
 
         // 1.
-        $command = sprintf("pdftohtml -c -s %s %s", $this->pdf['filePath'], self::SAVE_PATH."output.html");
+        $command = sprintf("pdftohtml -c -s %s %s", $this->pdf['filePath'], self::TEMP_PATH."output.html");
         print($command);
         exec($command);
 
@@ -117,19 +119,19 @@ class PDFToolkit
         $newPDF = new Mpdf\Mpdf();
         $newPDF->percentSubset = 0;
 
-        $newPDF->WriteHTML(file_get_contents(self::SAVE_PATH."output-html.html"));
-        $newPDF->Output(self::SAVE_PATH."output_zensiert.pdf", "F");
+        $newPDF->WriteHTML(file_get_contents(self::TEMP_PATH."output-html.html"));
+        $newPDF->Output(self::TEMP_PATH."temp.pdf", "F");
 
+        // 3.
         $replacementArray = array_map(function ($blacklistedString) {
-            return str_repeat("-", strlen($blacklistedString));
+            return str_repeat("█", strlen($blacklistedString));
         }, $blacklist);
 
         $mpdf = new \Mpdf\Mpdf();
-        $mpdf->OverWrite(self::SAVE_PATH."output_zensiert.pdf",
+        $mpdf->OverWrite(self::TEMP_PATH."temp.pdf",
             $blacklist,
             $replacementArray,
             "F",
-            self::SAVE_PATH.basename($this->pdf['filePath'], '.pdf')."_zensiert.pdf");
-        //$mpdf->Output(self::SAVE_PATH."output_zensiert2.pdf", "F");
+            self::OUTPUT_PATH.basename($this->pdf['filePath'], '.pdf')."_zensiert.pdf");
     }
 }

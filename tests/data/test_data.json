@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "text": "Vernehmungsprotokoll\nAktenzeichen: 4242/A/2025\n\nVernehmungsdatum: 08. September 2025\n\nBeginn der Vernehmung: 10:15 Uhr\n\nOrt: Kriminalinspektion Osnabrück, Raum 301\n\nVernehmende Person: Kriminaloberkommissarin Sarah Müller\n\nProtokollführer: Kriminaloberkommissar Jonas Richter\n\nAngaben zur vernommenen Person:\n\nName: Alexander Iwan\n\nGeburtsdatum: 15. April 1988\n\nGeburtsort: Berlin\n\nWohnanschrift: Musterstraße 17, 49074 Osnabrück\n\nStaatsangehörigkeit: deutsch\n\nBeruf: Softwareentwickler\n\nTelefonnummer: +49 171 1234567\n\nE-Mail-Adresse: max.mustermann@example.de\n\nPersonalausweisnummer: 1234567890\n\nHintergrund der Vernehmung:\n\nHerr Alexander Iwan wird als Zeuge im Fall des Diebstahls von Unterlagen aus der Firma „Tech Solutions GmbH“ vernommen.\n\nVernehmungsablauf:\n\nDie Vernehmung beginnt mit der Belehrung über die Rechte und Pflichten als Zeuge. Herr Mustermann bestätigt, die Belehrung verstanden zu haben.\n\nAussage:\n\nE-Mail-Adresse: max.mustermann@example.de\n\n„Ich arbeite seit dem 01. Januar 2018 in der Firma ‚Tech Solutions GmbH‘ in der Abteilung für Anwendungsentwicklung. Meine Vorgesetzte ist Frau Silvia Becker. Am Tag des Vorfalls, dem 07. September 2025, bin ich gegen 17:30 Uhr aus dem Büro gegangen. Ich habe meinen Mitarbeiterausweis mit der Nummer TSG-456 wie gewöhnlich am Lesegerät im Erdgeschoss gescannt. Ich kann mich erinnern, dass ich in der Kantine noch mit Herrn Tim Schreiber gesprochen habe, der in der Marketingabteilung arbeitet und dessen Büro im dritten Stock liegt. Er sagte, er habe an dem Tag starke Kopfschmerzen gehabt.“\n\nEnde der Vernehmung: 11:00 Uhr\n\nDie Vernehmung wurde ohne Unterbrechung geführt. Das Protokoll wurde Herrn Mustermann zur Durchsicht vorgelegt und von ihm als korrekt anerkannt.\n\nUnterschrift:\n\n(Alexander Iwan, Zeuge)\n\n(Sarah Müller, KOKin)\n\n(Jonas Richter, KOK)",
+    "erwartete_treffer": 21,
+    "erwartete_kategorie": "Vernehmungsprotokoll"
+  },
+  {
+    "id": 2,
+    "text": "Mietvertrag\nZwischen:\n\nVermieter: Anna Schulze, geboren am 03. Mai 1975, wohnhaft in der Lindenstraße 5, 10115 Berlin.\n\nMieter: Paul Schneider, geboren am 19. November 1989, wohnhaft in der Schillerstraße 12, 10625 Berlin.\n\n§ 1 Mietgegenstand\n\nDer Vermieter vermietet dem Mieter die Wohnung in der Hauptstraße 22, 10178 Berlin, bestehend aus 3 Zimmern, Küche, Bad und Flur, gelegen im 2. Obergeschoss. Die Wohnfläche beträgt ca. 85 m².\n\n§ 2 Mietzeit und Kündigung\n\nDas Mietverhältnis beginnt am 01. Oktober 2025 und wird auf unbestimmte Zeit abgeschlossen. Die Kündigungsfristen richten sich nach den gesetzlichen Bestimmungen.\n\n§ 3 Miete und Nebenkosten\n\nDie monatliche Kaltmiete beträgt 950,00 Euro (in Worten: neunhundertfünfzig Euro).\n\nEine Vorauszahlung für die Betriebskosten in Höhe von 120,00 Euro wird monatlich fällig. Darin sind Kosten für Wasser, Heizung und Müllentsorgung enthalten.\n\nDie monatliche Gesamtzahlung beträgt somit 1.070,00 Euro und ist bis spätestens zum dritten Werktag eines Monats im Voraus auf das Konto des Vermieters zu überweisen:\n\nKontoinhaber: Anna Schulze\n\nIBAN: DE89 3704 0044 0532 0130 00\n\nBIC: COBADEFXXX\n\n§ 4 Kaution\n\nDer Mieter leistet eine Kaution in Höhe von 2.850,00 Euro, die drei Nettokaltmieten entspricht.\n\nOrt, Datum:\n\nBerlin, den 08. September 2025\n\nUnterschriften:\n\n(Anna Schulze, Vermieterin)\n\n(Paul Schneider, Mieter)\n\n",
+    "erwartete_treffer": 13,
+    "erwartete_kategorie": "Vertrag"
+  },
+  {
+    "id": 3,
+    "text": "Zeugnis\nFrau Lena Becker, geboren am 12. Juli 1995 in Hamburg, trat am 01. Februar 2019 als Projektmanagerin in unser Unternehmen, die „Globale Marketing Solutions GmbH“ (GMS), ein. Frau Becker war in unserer Hauptniederlassung in der Auguststraße 45, 20355 Hamburg, beschäftigt.\n\nZu den Hauptaufgaben von Frau Becker gehörte die Leitung internationaler Marketingprojekte, die Budgetplanung und die Koordination der Zusammenarbeit zwischen verschiedenen Abteilungen und externen Partnern. Sie war verantwortlich für die Einführung unserer neuen Software-Suite „MarketInsight“ in den Märkten Asiens.\n\nFrau Becker hat die ihr übertragenen Aufgaben stets zu unserer vollen Zufriedenheit ausgeführt. Sie besitzt fundierte Fachkenntnisse und zeichnete sich durch eine sehr hohe Einsatzbereitschaft aus. Ihre Arbeitsweise war jederzeit sehr strukturiert und zielorientiert. Sie konnte sich schnell in neue Aufgabenfelder einarbeiten und fand auch unter Termindruck stets ausgezeichnete Lösungen.\n\nIhr Verhalten gegenüber Vorgesetzten, Kollegen und Geschäftspartnern war stets vorbildlich und kooperativ.\n\nFrau Becker verlässt unser Unternehmen zum 30. September 2025 auf eigenen Wunsch, um sich einer neuen beruflichen Herausforderung zu stellen. Wir bedauern ihr Ausscheiden sehr und danken ihr für die stets sehr gute Zusammenarbeit. Für ihre berufliche und persönliche Zukunft wünschen wir ihr weiterhin viel Erfolg.\n\nGlobale Marketing Solutions GmbH\nHamburg, den 08. September 2025\n\n(Philipp Meier, Geschäftsführer)\n\n",
+    "erwartete_treffer": 8,
+    "erwartete_kategorie": "Personal"
+  },
+  {
+    "id": 4,
+    "text": "Ärztliches Attest\n\nPatientin: Maria Kowalski\nGeburtsdatum: 05. Mai 1980\nAnschrift: Blumenweg 7, 50676 Köln\n\nDiagnose: Akute Bronchitis\n\nDie Patientin ist seit dem 15. September 2025 arbeitsunfähig. Die voraussichtliche Dauer der Arbeitsunfähigkeit beträgt 5 Tage.\n\nKöln, den 16. September 2025\n\nDr. med. Stefan Richter\nFacharzt für Allgemeinmedizin\nPraxis: Hauptstraße 10, 50676 Köln\nTelefon: 0221 1234567\n",
+    "erwartete_treffer": 10,
+    "erwartete_kategorie": "Medizin"
+  },
+  {
+    "id": 5,
+    "text": "Lebenslauf\n\nPersönliche Daten:\nName: Lisa Schmitt\nGeburtsdatum: 21. Januar 1998\nTelefon: +49 152 9876543\nE-Mail: lisa.schmitt@gmx.de\n\nBerufserfahrung:\n01/2022 - heute: Marketing Specialist, TechPro GmbH, Berlin\n08/2019 - 12/2021: Junior Marketing Manager, Creative Solutions AG, Hamburg\n\nAusbildung:\n10/2016 - 07/2019: Bachelor of Arts in Betriebswirtschaftslehre, Universität Hamburg\n",
+    "erwartete_treffer": 7,
+    "erwartete_kategorie": "Bewerbung"
+  },
+  {
+    "id": 6,
+    "text": "Polizeiliche Anzeige\n\nAktenzeichen: 9876/B/2025\n\nDatum: 22. September 2025\nOrt des Geschehens: Marienplatz, München\nAnzeigende Person: Tobias Vogel\nGeburtsdatum: 10. August 1992\nAnschrift: Kirchgasse 3, 80331 München\n\nAnlass: Diebstahl des Mobiltelefons\n\nZeugenaussage:\nIch, Tobias Vogel, war am 22.09.2025 um ca. 14:00 Uhr am Marienplatz unterwegs, als mir mein iPhone 14 aus der Tasche entwendet wurde. Ein Zeuge, Herr Julian Wolf, hat den Vorfall beobachtet.\n",
+    "erwartete_treffer": 6,
+    "erwartete_kategorie": "Recht & Gesetz"
+  },
+  {
+    "id": 7,
+    "text": "Bank-Kontoauszug\n\nKontoinhaber: Peter Müller\nKontonummer: 1234567890\nIBAN: DE12 3006 0601 0012 3456 78\nBIC: GENODEF1N02\n\nAuszugsdatum: 25. September 2025\n\nBuchungen:\n\nDatum: 20.09.2025\nBuchungstext: Gehaltseingang\nBetrag: 3.500,00 EUR\n\nDatum: 21.09.2025\nBuchungstext: Miete\nBetrag: -850,00 EUR\n",
+    "erwartete_treffer": 7,
+    "erwartete_kategorie": "Finanzen"
+  },
+  {
+    "id": 8,
+    "text": "Bewerbungs-E-Mail\n\nBetreff: Bewerbung als Data Scientist\n\nSehr geehrte Frau Dr. Wagner,\n\nmit großem Interesse habe ich Ihre Stellenanzeige auf LinkedIn gelesen. Ich bin Felix Neumann, Jahrgang 1993, und möchte mich hiermit auf die Position des Data Scientists bewerben. Meine Kontaktdaten sind: felix.neumann@web.de, Telefon: 0176 98765432. Anbei finden Sie meinen Lebenslauf und meine Zeugnisse.\n\nMit freundlichen Grüßen,\nFelix Neumann\n",
+    "erwartete_treffer": 6,
+    "erwartete_kategorie": "Bewerbung"
+  },
+  {
+    "id": 9,
+    "text": "Versicherungsbestätigung\n\nVersicherungsnehmer: Michael Fischer\nGeburtsdatum: 14. Februar 1978\nAnschrift: Rheinallee 88, 40545 Düsseldorf\n\nVersicherung: Hausratversicherung\nVersicherungsnummer: 778899-01-22\nVertragsbeginn: 01. November 2024\nJahresbeitrag: 150,00 EUR\n\nVersicherungsgesellschaft: Rheinische Versicherungen AG\n",
+    "erwartete_treffer": 6,
+    "erwartete_kategorie": "Finanzen"
+  },
+  {
+    "id": 10,
+    "text": "Strafregisterauszug\n\nPersonenbezogene Daten:\nName: Dennis Bauer\nGeburtsdatum: 29. Juli 1985\nGeburtsort: Frankfurt am Main\n\nEinträge:\n- Verurteilung vom 10.03.2010 wegen Fahrens unter Alkoholeinfluss.\n- Verurteilung vom 05.05.2018 wegen Beleidigung.\n\n",
+    "erwartete_treffer": 6,
+    "erwartete_kategorie": "Recht & Gesetz"
+  }
+]

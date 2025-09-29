@@ -1,0 +1,77 @@
+[
+  {
+    "entity": "Name",
+    "word": "Sarah",
+    "length": "5"
+  },
+  {
+    "entity": "Name",
+    "word": "Müller",
+    "length": "6"
+  },
+  {
+    "entity": "Name",
+    "word": "Jonas",
+    "length": "5"
+  },
+  {
+    "entity": "Name",
+    "word": "Richter",
+    "length": "7"
+  },
+  {
+    "entity": "Name",
+    "word": "Max",
+    "length": "3"
+  },
+  {
+    "entity": "Name",
+    "word": "Mustermann",
+    "length": "10"
+  },
+  {
+    "entity": "Geburtsdatum",
+    "word": "15. April 1988",
+    "length": "14"
+  },
+  {
+    "entity": "Postanschrift",
+    "word": "Musterstraße 17, 49074 Osnabrück",
+    "length": "32"
+  },
+  {
+    "entity": "Telefonnummer",
+    "word": "+49 171 1234567",
+    "length": "15"
+  },
+  {
+    "entity": "E-Mail",
+    "word": "max.mustermann@example.de",
+    "length": "25"
+  },
+  {
+    "entity": "Persönliche Identifikationsnummer",
+    "word": "1234567890",
+    "length": "10"
+  },
+  {
+    "entity": "Name",
+    "word": "Silvia",
+    "length": "6"
+  },
+  {
+    "entity": "Name",
+    "word": "Becker",
+    "length": "6"
+  },
+  {
+    "entity": "Name",
+    "word": "Tim",
+    "length": "3"
+  },
+  {
+    "entity": "Name",
+    "word": "Schreiber",
+    "length": "9"
+  }
+]

@@ -4,12 +4,19 @@
     "mpdf/mpdf": "^8.2",
     "smalot/pdfparser": "^2.12",
     "setasign/fpdf": "1.8.*",
-    "setasign/fpdi": "^2.5"
+    "setasign/fpdi": "^2.5",
+    "google-gemini-php/client": "^2.6",
+    "symfony/http-client": "^7.3",
+    "nyholm/psr7": "^1.8",
+    "psr/http-client": "^1.0",
+    "thiagoalessio/tesseract_ocr": "^2.13",
+    "spatie/pdf-to-image": "^1.2"
 
   },
   "config": {
     "allow-plugins": {
-      "codewithkyrian/platform-package-installer": true
+      "codewithkyrian/platform-package-installer": true,
+      "php-http/discovery": true
     }
   },
   "scripts": {
@@ -19,5 +26,8 @@
     "pre-update-cmd": [
       "command -v pdftohtml >/dev/null 2>&1 || { echo >&2 'Error: Poppler utility \"pdftohtml\" is not installed. Please install poppler-utils to continue.'; exit 1; }"
     ]
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^12"
   }
 }

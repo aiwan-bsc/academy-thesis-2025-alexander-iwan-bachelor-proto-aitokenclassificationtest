@@ -1,43 +1,12 @@
 <?php
 
-use Codewithkyrian\Transformers\Transformers;
-use function codewithkyrian\transformers\pipelines\pipeline;
+namespace toolkits;
+use Codewithkyrian\Transformers\PreTrainedTokenizers\AutoTokenizer;
 
-class piiSensitiveNerGerman implements AiModel
+class AiToolkit
 {
-
-    /**
-     * @throws Exception
-     */
-    public function getOutput(string $input): array
-    {
-        Transformers::setup()
-            ->setCacheDir($this->path)
-            ->apply();
-
-
-        try {
-            $pipe = pipeline("ner", $this->name, false);
-            return $this->groupAiEntities($pipe($input));
-            //return $pipe($input);
-        } catch (\Codewithkyrian\Transformers\Exceptions\UnsupportedTaskException $e) {
-            throw new Exception($e->getMessage());
-        }
-    }
-
-    public string $name = 'piiSensitiveNerGerman_Onnx' {
-        get {
-            return $this->name;
-        }
-    }
-    public string $path = __DIR__.'/Models' {
-        get {
-            return $this->path;
-        }
-    }
-    private function groupAiEntities(array $response) :array
-    {
-        if (empty($response)) {
+    public static function cleanAiResponse(array $outputArray): array{
+        if (empty($outputArray)) {
             return [];
         }
 
@@ -46,9 +15,9 @@ class piiSensitiveNerGerman implements AiModel
 
         // Wir müssen die Indizes des $entities-Arrays neu aufbauen,
         // da die Original-Indizes (33, 34, 35 ...) Lücken haben.
-        $response = array_values($response);
+        $outputArray = array_values($outputArray);
 
-        foreach ($response as $i => $entity) {
+        foreach ($outputArray as $i => $entity) {
             $entityType = $entity['entity'];
             $word = $entity['word'];
             $index = $entity['index'];
@@ -66,13 +35,11 @@ class piiSensitiveNerGerman implements AiModel
                     'text' => $word,
                     'last_index' => $index
                 ];
-            }
-            // Gehört dieses Token zur vorherigen Entität?
+            } // Gehört dieses Token zur vorherigen Entität?
             else if ($entityType === $currentEntity['type'] && $index === $currentEntity['last_index'] + 1) {
                 $currentEntity['text'] .= $word; // Wort anhängen
                 $currentEntity['last_index'] = $index; // Index aktualisieren
-            }
-            // Andernfalls ist die alte Entität beendet und eine neue beginnt.
+            } // Andernfalls ist die alte Entität beendet und eine neue beginnt.
             else {
                 // Speichere die abgeschlossene Entität
                 $groupedEntities[] = trim($currentEntity['text']);
@@ -95,5 +62,18 @@ class piiSensitiveNerGerman implements AiModel
         return array_values(array_unique($groupedEntities));
     }
 
-
+    public static function tokenizeInputStringIntoArray(string $input, int $outputTokenSize): array
+    {
+            $inputArray = array();
+            $inputArrayPrepare = explode(" ", $input);
+            $stringBuffer = '';
+            for ($i = 0; $i < count($inputArrayPrepare); $i++) {
+                $stringBuffer .= $inputArrayPrepare[$i] . " ";
+                if ($i % $outputTokenSize === 0) {
+                    $inputArray[] = $stringBuffer;
+                    $stringBuffer = '';
+                }
+            }
+            return $inputArray;
+    }
 }

@@ -1,5 +1,6 @@
 <?php
 
+namespace AiModels;
 interface AiModel
 {
     public string $name {
@@ -9,6 +10,6 @@ interface AiModel
         get;
     }
 
-    public function getOutput(string $input) : array;
+    public function getOutput(string $input): array;
 
 }

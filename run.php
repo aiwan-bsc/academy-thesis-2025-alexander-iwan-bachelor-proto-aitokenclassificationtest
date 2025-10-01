@@ -4,8 +4,8 @@
 
     use AiModels\GeminiModel;
     use AiModels\piiranha;
-use AiModels\piiSensitiveNerGerman;
-use toolkits\PDFToolkit;
+    use AiModels\piiSensitiveNerGerman;
+    use toolkits\PDFToolkit;
 
     require 'AiModels/AiModel.php';
     require 'AiModels/piiSensitiveNerGerman.php';
@@ -13,6 +13,10 @@ use toolkits\PDFToolkit;
     require 'AiModels/GeminiModel.php';
 
     require 'toolkits/PDFToolkit.php';
+
+use Codewithkyrian\Transformers\Transformers;
+use toolkits\AiToolkit;
+use function codewithkyrian\transformers\pipelines\pipeline;
 
     echo '
     <html lang="de">
@@ -36,22 +40,17 @@ use toolkits\PDFToolkit;
         </form>';
 
 
-    //Auf den Models-Ordner im Projekt verweisen, damit das lokale Modell gefunden werden kann
-    /*Transformers::setup()
-            ->setCacheDir(__DIR__ .'/Models/')
-            ->apply();*/
-
-    /*if(isset($_POST['eingabe'])) {
-        $pdfToolkit = new PDFToolkit(new piiranha());
-        echo '<pre>'.var_dump($pdfToolkit->inputIntoAI($_POST['eingabe'])).'</pre>';
-        die();
-    }*/
+    // Fehlerbehebung 502er bei lokalen Modellen, mehrere Librarys binden die
+    // OMP: Error #15: Initializing libomp.dylib, but found libomp.dylib already initialized.
+    //
+    // OMP: Hint This means that multiple copies of the OpenMP runtime have been linked into the program. That is dangerous, since it can degrade performance or cause incorrect results. The best thing to do is to ensure that only a single OpenMP runtime is linked into the process, e.g. by avoiding static linking of the OpenMP runtime in any library. As an unsafe, unsupported, undocumented workaround you can set the environment variable KMP_DUPLICATE_LIB_OK=TRUE to allow the program to continue to execute, but that may cause crashes or silently produce incorrect results. For more information, please see http://openmp.llvm.org/
+    putenv('KMP_DUPLICATE_LIB_OK=TRUE');
 
     if(isset($_FILES['pdfFile']['name']) && $_FILES['pdfFile']['name'] !== '') {
 
         //Schritt 1: Die Datei in den richtigen Ordner bewegen
         try {
-            $pdfToolkit = new PdfToolkit(new GeminiModel(), $_FILES['pdfFile']);
+            $pdfToolkit = new PdfToolkit(new piiranha(), $_FILES['pdfFile']);
         } catch (Exception $e) {
             echo $e->getMessage();
             return;
@@ -59,7 +58,6 @@ use toolkits\PDFToolkit;
 
         // Schritt 2: Text aus dem PDF extrahieren
         try {
-            var_dump($_POST);
             $pdfText = $pdfToolkit->extractTextFromPdf($_POST['parsing_type']);
         } catch (Exception $e) {
             echo $e->getMessage();

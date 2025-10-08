@@ -13,7 +13,7 @@ class AiToolkit
         $groupedEntities = [];
         $currentEntity = null;
 
-        // Wir müssen die Indizes des $entities-Arrays neu aufbauen,
+        // Indizes des $entities-Arrays neu aufbauen,
         // da die Original-Indizes (33, 34, 35 ...) Lücken haben.
         $outputArray = array_values($outputArray);
 
@@ -22,13 +22,13 @@ class AiToolkit
             $word = $entity['word'];
             $index = $entity['index'];
 
-            // 'O' bedeutet "Outside" und ist keine relevante Entität.
-            // Wir filtern auch "leere" Tokens wie einzelne Satzzeichen oder den Bullet-Point '●'.
+            // 'O' = "Outside", keine relevante Entität.
+            // auch "leere" Tokens oder Bullet-Point '●' weg
             if ($entityType === 'O' || empty(trim($word, " \t\n\r\0\x0B.,;:-_●"))) {
                 continue;
             }
 
-            // Ist dies der Beginn einer neuen Entität?
+            // Beginn einer neuen Entität?
             if ($currentEntity === null) {
                 $currentEntity = [
                     'type' => $entityType,

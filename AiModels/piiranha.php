@@ -1,19 +1,29 @@
 <?php
 
+
 namespace AiModels;
 
 use Codewithkyrian\Transformers\Transformers;
-use Codewithkyrian\Transformers\PreTrainedTokenizers\AutoTokenizer;
-use Codewithkyrian\Transformers\PreTrainedTokenizers\DebertaV2Tokenizer;
 use Exception;
 use toolkits\AiToolkit;
 use function codewithkyrian\transformers\pipelines\pipeline;
+
 include_once "./toolkits/AiToolkit.php";
 
 class piiranha implements AiModel
 {
 
-    private const int INPUT_TOKEN_SPLIT = 15;
+    public string $name = 'iiiorg_piiranha_onnx' {
+        get {
+            return $this->name;
+        }
+    }
+    public string $path = __DIR__ . '/Models' {
+        get {
+            return $this->path;
+        }
+    }
+    private const int INPUT_TOKEN_SPLIT = 25;
 
     /**
      * @throws Exception
@@ -37,10 +47,9 @@ class piiranha implements AiModel
             $pipe = pipeline("ner", $this->name, false);
 
             foreach ($inputArray as $inputFromArray) {
+                var_dump($inputFromArray);
                 foreach ($pipe($inputFromArray) as $aiSingleOutput) {
                     $output[] = $aiSingleOutput;
-                    var_dump($aiSingleOutput);
-                    die();
                 }
             }
 
@@ -50,14 +59,4 @@ class piiranha implements AiModel
         }
     }
 
-    public string $name = 'iiiorg_piiranha_onnx' {
-        get {
-            return $this->name;
-        }
-    }
-    public string $path = __DIR__ . '/Models' {
-        get {
-            return $this->path;
-        }
-    }
 }

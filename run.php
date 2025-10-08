@@ -14,9 +14,9 @@
 
     require 'toolkits/PDFToolkit.php';
 
-use Codewithkyrian\Transformers\Transformers;
-use toolkits\AiToolkit;
-use function codewithkyrian\transformers\pipelines\pipeline;
+    use Codewithkyrian\Transformers\Transformers;
+    use toolkits\AiToolkit;
+    use function codewithkyrian\transformers\pipelines\pipeline;
 
     echo '
     <html lang="de">
@@ -40,7 +40,7 @@ use function codewithkyrian\transformers\pipelines\pipeline;
         </form>';
 
 
-    // Fehlerbehebung 502er bei lokalen Modellen, mehrere Librarys binden die
+    // Fehlerbehebung 502er bei lokalen Modellen, mehrere Libraries binden libomp ein
     // OMP: Error #15: Initializing libomp.dylib, but found libomp.dylib already initialized.
     //
     // OMP: Hint This means that multiple copies of the OpenMP runtime have been linked into the program. That is dangerous, since it can degrade performance or cause incorrect results. The best thing to do is to ensure that only a single OpenMP runtime is linked into the process, e.g. by avoiding static linking of the OpenMP runtime in any library. As an unsafe, unsupported, undocumented workaround you can set the environment variable KMP_DUPLICATE_LIB_OK=TRUE to allow the program to continue to execute, but that may cause crashes or silently produce incorrect results. For more information, please see http://openmp.llvm.org/
@@ -78,13 +78,14 @@ use function codewithkyrian\transformers\pipelines\pipeline;
         //Schritt 4: Text anpassen
         //echo $helper->group_entities($entities);
        // echo '<pre>'.$pdfToolkit->getCensoredTextFromWordList($aiResponse).'</pre>';
-        die();
         try {
+            $pdfToolkit->createCensoredPdfWithBlacklistWithBoxes($aiResponse);
             $pdfToolkit->createCensoredPdfWithBlacklistWithHTML($aiResponse);
         } catch (\Mpdf\MpdfException
                 |\setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException
                 |\setasign\Fpdi\PdfParser\Type\PdfTypeException
-                |\setasign\Fpdi\PdfParser\PdfParserException|\Smalot\PdfParser\Exception\MissingCatalogException $e) {
+                |\setasign\Fpdi\PdfParser\PdfParserException
+                |\Smalot\PdfParser\Exception\MissingCatalogException|Exception $e) {
             echo $e->getMessage();
         }
     }

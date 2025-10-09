@@ -10,8 +10,8 @@
     "thiagoalessio/tesseract_ocr": "^2.13",
     "google-gemini-php/client": "^2.6",
     "symfony/http-client": "^7.3",
-    "codewithkyrian/transformers": "^0.6.2"
-
+    "codewithkyrian/transformers": "^0.6.2",
+    "ext-dom": "*"
   },
   "config": {
     "allow-plugins": {

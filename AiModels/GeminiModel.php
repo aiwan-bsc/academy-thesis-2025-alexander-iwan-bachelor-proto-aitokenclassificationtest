@@ -108,7 +108,6 @@ json:
             )
         )->generateContent($prompt)->json();
 
-        var_dump($result);
         return array_map(function($item){
             return $item->word;
         }, $result);

@@ -50,7 +50,7 @@
 
         //Schritt 1: Die Datei in den richtigen Ordner bewegen
         try {
-            $pdfToolkit = new PdfToolkit(new piiranha(), $_FILES['pdfFile']);
+            $pdfToolkit = new PdfToolkit(new GeminiModel(), $_FILES['pdfFile']);
         } catch (Exception $e) {
             echo $e->getMessage();
             return;

@@ -47,7 +47,6 @@ class piiranha implements AiModel
             $pipe = pipeline("ner", $this->name, false);
 
             foreach ($inputArray as $inputFromArray) {
-                var_dump($inputFromArray);
                 foreach ($pipe($inputFromArray) as $aiSingleOutput) {
                     $output[] = $aiSingleOutput;
                 }

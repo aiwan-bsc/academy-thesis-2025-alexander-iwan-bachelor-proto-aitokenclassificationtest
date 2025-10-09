@@ -3,6 +3,8 @@
 namespace toolkits;
 
 use AiModels\AiModel;
+use DOMDocument;
+use DOMXPath;
 use Exception;
 use FilesystemIterator;
 use Mpdf;
@@ -85,9 +87,7 @@ class PDFToolkit
             $pdf = new \Spatie\PdfToImage\Pdf($this->pdf['filePath']);
             for($i = 1; $i <= $pdf->pageCount(); $i++){
                 $pdf->selectPage($i);
-                //$pdf->setPage($i);
                 $pdf->save(self::TEMP_PATH."temp.jpg");
-                //$pdf->saveImage(self::TEMP_PATH."temp.jpg");
 
                 $langCommand = new Command();
                 $langCommand->options[] = "-l deu"; //Deutsche Sprache prüfen, um Umlaute und 'ß' abzufangen
@@ -195,7 +195,7 @@ class PDFToolkit
             "F",
             self::OUTPUT_PATH . basename($this->pdf['filePath'], '.pdf') . "_zensiert.pdf");
 
-        //self::deleteTemp();
+        self::deleteTemp();
     }
 
     /**
@@ -211,37 +211,120 @@ class PDFToolkit
         // 3. PDF flatten (Evtl. Bild-PDF speichern)
 
 
-
         //1.
         $coordinatesArray = $this->getCoordinatesOfStrings($blacklist);
-        var_dump($coordinatesArray['page'][0]);
+        var_dump($coordinatesArray);
 
         //2.
         $this->drawCensorBoxes($coordinatesArray);
 
         //3.
-        //$this->flattenPdf();
+        $this->flattenPdf();
 
-        //self::deleteTemp();
+        self::deleteTemp();
+    }
+
+
+    private function getCoordinatesOfStrings(array $blacklist): array
+    {
+        var_dump($blacklist);
+        // 1. Generate positional data with Poppler's pdftotext
+        $outputHtmlFile = self::TEMP_PATH . uniqid() . '.html';
+        $command = sprintf('pdftotext -bbox %s %s', escapeshellarg($this->pdf['filePath']), $outputHtmlFile);
+        shell_exec($command);
+
+        // 2. Parse the output HTML
+        $dom = new DOMDocument();
+        @$dom->loadHTMLFile($outputHtmlFile);
+        $xpath = new DOMXPath($dom);
+
+        $foundLocations = [];
+        $pages = $xpath->query('//page');
+
+        foreach ($pages as $pageIndex => $page) {
+            $pageNumber = $pageIndex + 1;
+            $words = $xpath->query('.//word', $page);
+            $wordData = [];
+            foreach ($words as $wordNode) {
+                var_dump(mb_convert_encoding($wordNode->nodeValue, 'iso-8859-1'));
+                $wordData[] = [
+                    'text' => mb_convert_encoding($wordNode->nodeValue, 'iso-8859-1'),
+                    'xMin' => (float) $wordNode->getAttribute('xmin'),
+                    'yMin' => (float) $wordNode->getAttribute('ymin'),
+                    'xMax' => (float) $wordNode->getAttribute('xmax'),
+                    'yMax' => (float) $wordNode->getAttribute('ymax'),
+                ];
+            }
+
+            // 3. Search for the multi-word strings
+            foreach ($blacklist as $searchText) {
+                $searchWords = explode(' ', $searchText);
+                $numSearchWords = count($searchWords);
+
+                for ($i = 0; $i <= count($wordData) - $numSearchWords; $i++) {
+                    $phraseWords = array_slice($wordData, $i, $numSearchWords);
+                    $phraseText = implode(' ', array_column($phraseWords, 'text'));
+
+                    if (strtolower($phraseText) == strtolower($searchText)) {
+                        // Match found! Calculate the bounding box for the whole phrase.
+                        $firstWord = $phraseWords[0];
+                        $lastWord = $phraseWords[$numSearchWords - 1];
+
+                        $bbox = [
+                            'xMin' => $firstWord['xMin'],
+                            'yMin' => min(array_column($phraseWords, 'yMin')), // Handle text on slight slant
+                            'xMax' => $lastWord['xMax'],
+                            'yMax' => max(array_column($phraseWords, 'yMax')),
+                        ];
+
+                        // 4. Convert coordinates from points to mm
+                        $pointToMm = 25.4 / 72;
+                        $x_mm = $bbox['xMin'] * $pointToMm;
+                        $y_mm = $bbox['yMin'] * $pointToMm;
+                        $width_mm = ($bbox['xMax'] - $bbox['xMin']) * $pointToMm;
+                        $height_mm = ($bbox['yMax'] - $bbox['yMin']) * $pointToMm;
+
+                        $foundLocations[$pageNumber][] = [
+                            'x' => $x_mm,
+                            'y' => $y_mm,
+                            'w' => $width_mm,
+                            'h' => $height_mm,
+                            'text' => $searchText
+                        ];
+
+                        // Skip the words we just matched
+                        $i += $numSearchWords - 1;
+                    }
+                }
+            }
+        }
+
+        return $foundLocations;
+
     }
 
     /**
-     * @throws MissingCatalogException
-     * @throws Exception
+     * @throws PdfParserException
+     * @throws MpdfException
      */
-    private function getCoordinatesOfStrings(array $blacklist): array{
-        $parser = new \Smalot\PdfParser\Parser();
-        $pdf    = $parser->parseFile($this->pdf['filePath']);
+    private function flattenPDF(): void{
+        //TODO: funktioniert nicht, Text bleibt hinter schwarzen Boxen :(
+        $pdf = new Mpdf\Mpdf();
+        $pageCount = $pdf->setSourceFile(self::OUTPUT_PATH . basename($this->pdf['filePath'], '.pdf')."_blackBoxes.pdf");
+        for($pageNo = 1; $pageNo <= $pageCount; $pageNo++){
+            $templateId = $pdf->importPage($pageNo);
+            // Get the size of the imported page
+            $size = $pdf->getTemplateSize($templateId);
 
-        //Alle Seiten durchgehen, Wörter finden und mit Positionen speichern
-        $textCoordinates = [];
-        $pages = $pdf->getPages();
-        for($i = 0; $i < count($pages); $i++) {
-            $page = $pages[$i];
-            $dataTm = $page->getDataTm();
-            $textCoordinates['page'][$i] = $this->groupTextIntoWords($dataTm, $blacklist);
+            // Add a page to the new document with the same size
+            $pdf->AddPage();
+
+            // Use the imported page as a template
+            $pdf->useTemplate($templateId);
         }
-        return $textCoordinates;
+
+        $pdf->Output(self::OUTPUT_PATH."FADSHJKDASHDKJASDHSKJD.pdf", 'F');
+
     }
 
     /**
@@ -254,16 +337,15 @@ class PDFToolkit
         $pdf->setSourceFile($this->pdf['filePath']);
 
         $pageNumber = 1;
-        foreach ($coordinates['page'] as $page) {
+        foreach ($coordinates as $page) {
             $tplID = $pdf->importPage($pageNumber++);
             $pdf->useTemplate($tplID);
-            //TODO: startX usw. sind Pixelwerte, MPDF will aber mm-Werte :(
             foreach($page as $word){
                 $pdf->RoundedRect(
-                    $word['startX'] / 2.02,
-                    $word['startY'] / 2.02,
-                    ($word['endX'] - $word['startX']) / 2.02,
-                    $word['startY'] + 10 / 2.02,
+                    $word['x'],
+                    $word['y'],
+                    $word['w'],
+                    $word['h'],
                     0,
                 'F');
             }
@@ -272,147 +354,6 @@ class PDFToolkit
 
         $pdf->Output(self::OUTPUT_PATH . basename($this->pdf['filePath'], '.pdf')."_blackBoxes.pdf", 'F');
     }
-/*
-    private function cleanCoordinates(array $dataTm): array{
-        var_dump($dataTm);
-        $cleanedArray = array();
-        $tempWord = [];
-        for($i = 0; $i <= count($dataTm); $i++){
-            // $dataTm[x][0] = transformations-matrix in 0-3, x,y-Werte in jeweils 4 und 5
-            // $dataTm[x][1] = Gefundener String
-
-            //Leerzeichen
-            if(trim($dataTm[$i][1]) === ''){
-                if($tempWord !== ""){
-                    $cleanedArray[] = $tempWord;
-
-                    $tempWord = "";
-                }
-                continue;
-            }
-
-
-            //Ein einzelner Buchstabe
-            //jetzt darauf achten, ob es Teil eines Worts ist, oder ein gewollter einzelner Buchstabe
-            if(strlen(trim($dataTm[$i][1])) === 1){
-                $tempWord[0][4] = $dataTm[$i][0][4];
-                $tempWord[0][5] = $dataTm[$i][0][5];
-                $tempWord[1] = trim($dataTm[$i][1]);
-            }
-        }
-        return[];
-    }*/
-/*
-* Groups text fragments from a PDF parser into whole words with their coordinates.
-*
-* @param array $textFragments The raw array from the Smalot PDFParser library.
-* @return array An array of words, where each element is an associative array
-* containing 'text', 'startX', 'startY', 'endX', and 'endY'.
-*/
-    function groupTextIntoWords(array $textFragments, ?array $blacklist = null): array
-    {
-        // --- Step 1: Define Tolerances ---
-        // Tolerance for considering characters to be on the same line.
-        // Adjust this value based on your document's line spacing.
-        $Y_TOLERANCE = 5.0;
-
-        // Tolerance for the horizontal gap between characters in the same word.
-        // Adjust this based on your document's font and character spacing.
-        $X_TOLERANCE = 10.0;
-
-
-        // --- Step 2: Sort the text fragments in reading order ---
-        // - Sort by Y-coordinate descending (top to bottom)
-        // - Then by X-coordinate ascending (left to right)
-        usort($textFragments, function ($a, $b) {
-            $Y_TOLERANCE = 5.0;
-            $X_TOLERANCE = 10.0;
-            $y_a = (float) $a[0][5];
-            $y_b = (float) $b[0][5];
-            $x_a = (float) $a[0][4];
-            $x_b = (float) $b[0][4];
-
-            // If Y-coordinates are significantly different, sort by Y descending
-            if (abs($y_a - $y_b) > $Y_TOLERANCE) {
-                return ($y_b > $y_a) ? 1 : -1;
-            }
-
-            // Otherwise, they are on the same line, so sort by X ascending
-            return ($x_a < $x_b) ? -1 : 1;
-        });
-
-        // --- Step 3: Iterate and Group ---
-        $words = [];
-        $currentWord = null;
-        $previousFragment = null;
-
-        foreach ($textFragments as $fragment) {
-            $text = $fragment[1];
-            $x = (float) $fragment[0][4];
-            $y = (float) $fragment[0][5];
-
-            // Skip empty spaces, as they are our primary delimiter
-            if (trim($text) === '') {
-                // If we were building a word, this space ends it.
-                if ($currentWord !== null) {
-                    if($blacklist !== null && in_array($currentWord['text'], $blacklist)) {
-                        $words[] = $currentWord;
-                    }
-                    $currentWord = null;
-                }
-                $previousFragment = null; // Reset previous fragment after a space
-                continue;
-            }
-
-            if ($currentWord === null) {
-                // Start a new word
-                $currentWord = [
-                    'text'   => $text,
-                    'startX' => $x,
-                    'startY' => $y,
-                    'endX'   => $x, // Will be updated
-                    'endY'   => $y, // Will be updated
-                ];
-            } else {
-                $prev_x = (float) $previousFragment[0][4];
-                $prev_y = (float) $previousFragment[0][5];
-
-                // Check for word break conditions
-                $isNewLine = abs($y - $prev_y) > $Y_TOLERANCE;
-                $isTooFarHorizontally = ($x - $prev_x) > $X_TOLERANCE;
-
-                if ($isNewLine || $isTooFarHorizontally) {
-                    // End the previous word
-                    $words[] = $currentWord;
-
-                    // Start a new word with the current fragment
-                    $currentWord = [
-                        'text'   => $text,
-                        'startX' => $x,
-                        'startY' => $y,
-                        'endX'   => $x,
-                        'endY'   => $y,
-                    ];
-                } else {
-                    // Append to the current word
-                    $currentWord['text'] .= $text;
-                    // Update the end coordinates to the current fragment's position
-                    $currentWord['endX'] = $x;
-                    $currentWord['endY'] = $y;
-                }
-            }
-            $previousFragment = $fragment;
-        }
-
-        // --- Step 4: Add the last word ---
-        // Don't forget the very last word in the loop if it exists
-        if ($currentWord !== null) {
-            $words[] = $currentWord;
-        }
-
-        return $words;
-    }
-
 
     private static function deleteTemp() : void
     {

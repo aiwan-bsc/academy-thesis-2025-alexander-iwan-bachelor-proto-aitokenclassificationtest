@@ -195,7 +195,7 @@ class PDFToolkit
             "F",
             self::OUTPUT_PATH . basename($this->pdf['filePath'], '.pdf') . "_zensiert.pdf");
 
-        self::deleteTemp();
+        //self::deleteTemp();
     }
 
     /**
@@ -219,21 +219,23 @@ class PDFToolkit
         $this->drawCensorBoxes($coordinatesArray);
 
         //3.
-        $this->flattenPdf();
+        $this->flattenPdf(
+            self::OUTPUT_PATH.basename($this->pdf['filePath'], '.pdf')."_blackBoxes.pdf",
+            self::OUTPUT_PATH.basename($this->pdf['filePath'], '.pdf')."_flattened.pdf");
 
-        self::deleteTemp();
+        //self::deleteTemp();
     }
 
 
     private function getCoordinatesOfStrings(array $blacklist): array
     {
         var_dump($blacklist);
-        // 1. Generate positional data with Poppler's pdftotext
+        // 1. Bounding-Box HTML generieren, um Positionen zu finden
         $outputHtmlFile = self::TEMP_PATH . uniqid() . '.html';
         $command = sprintf('pdftotext -bbox %s %s', escapeshellarg($this->pdf['filePath']), $outputHtmlFile);
         shell_exec($command);
 
-        // 2. Parse the output HTML
+        // 2. Entstandene HTML parsen
         $dom = new DOMDocument();
         @$dom->loadHTMLFile($outputHtmlFile);
         $xpath = new DOMXPath($dom);
@@ -246,9 +248,8 @@ class PDFToolkit
             $words = $xpath->query('.//word', $page);
             $wordData = [];
             foreach ($words as $wordNode) {
-                var_dump(mb_convert_encoding($wordNode->nodeValue, 'iso-8859-1'));
                 $wordData[] = [
-                    'text' => mb_convert_encoding($wordNode->nodeValue, 'iso-8859-1'),
+                    'text' => mb_convert_encoding($wordNode->nodeValue, 'iso-8859-1'),  //Encoding fixen, um Umlaute wiederherzustellen
                     'xMin' => (float) $wordNode->getAttribute('xmin'),
                     'yMin' => (float) $wordNode->getAttribute('ymin'),
                     'xMax' => (float) $wordNode->getAttribute('xmax'),
@@ -256,7 +257,7 @@ class PDFToolkit
                 ];
             }
 
-            // 3. Search for the multi-word strings
+            // 3. $blacklist in den Worten suchen
             foreach ($blacklist as $searchText) {
                 $searchWords = explode(' ', $searchText);
                 $numSearchWords = count($searchWords);
@@ -265,19 +266,24 @@ class PDFToolkit
                     $phraseWords = array_slice($wordData, $i, $numSearchWords);
                     $phraseText = implode(' ', array_column($phraseWords, 'text'));
 
-                    if (strtolower($phraseText) == strtolower($searchText)) {
-                        // Match found! Calculate the bounding box for the whole phrase.
+                    if (stristr(strtolower($phraseText), strtolower($searchText))) {
+                        // Bei Match Bounding Box kalkulieren
                         $firstWord = $phraseWords[0];
                         $lastWord = $phraseWords[$numSearchWords - 1];
 
                         $bbox = [
                             'xMin' => $firstWord['xMin'],
-                            'yMin' => min(array_column($phraseWords, 'yMin')), // Handle text on slight slant
+                            'yMin' => min(array_column($phraseWords, 'yMin')),
                             'xMax' => $lastWord['xMax'],
                             'yMax' => max(array_column($phraseWords, 'yMax')),
                         ];
 
-                        // 4. Convert coordinates from points to mm
+                        // 4. PT zu mm Konvertierung für mPDF
+                        /*
+                            1 inch = 72 points  //TODO: ist das immer so?
+                            1 inch = 25.4 mm
+                            Also, mm = points * (25.4 / 72)
+                         */
                         $pointToMm = 25.4 / 72;
                         $x_mm = $bbox['xMin'] * $pointToMm;
                         $y_mm = $bbox['yMin'] * $pointToMm;
@@ -292,7 +298,6 @@ class PDFToolkit
                             'text' => $searchText
                         ];
 
-                        // Skip the words we just matched
                         $i += $numSearchWords - 1;
                     }
                 }
@@ -307,24 +312,27 @@ class PDFToolkit
      * @throws PdfParserException
      * @throws MpdfException
      */
-    private function flattenPDF(): void{
-        //TODO: funktioniert nicht, Text bleibt hinter schwarzen Boxen :(
-        $pdf = new Mpdf\Mpdf();
-        $pageCount = $pdf->setSourceFile(self::OUTPUT_PATH . basename($this->pdf['filePath'], '.pdf')."_blackBoxes.pdf");
-        for($pageNo = 1; $pageNo <= $pageCount; $pageNo++){
-            $templateId = $pdf->importPage($pageNo);
-            // Get the size of the imported page
-            $size = $pdf->getTemplateSize($templateId);
+    private function flattenPDF(string $sourcePdfPath, string $finalPdfPath): void{
 
-            // Add a page to the new document with the same size
-            $pdf->AddPage();
+        try {
+            $imagick = new \Imagick();
+            // WICHTIG: Auflösung vor dem Lesen der Datei setzen!
+            // 300 DPI ist ein guter Kompromiss zwischen Qualität und Dateigröße.
+            $imagick->setResolution(300, 300);
 
-            // Use the imported page as a template
-            $pdf->useTemplate($templateId);
+            // Lade alle Seiten aus der PDF mit den schwarzen Boxen
+            $imagick->readImage($sourcePdfPath);
+
+            $imagick->setImageFormat('pdf');
+
+            // Speichere alle Seiten
+            $imagick->writeImages($finalPdfPath, true);
+
+            $imagick->clear();
+        } catch (Exception $e) {
+            // Fehlerbehandlung
+            echo 'Fehler beim Abflachen der PDF: ' . $e->getMessage();
         }
-
-        $pdf->Output(self::OUTPUT_PATH."FADSHJKDASHDKJASDHSKJD.pdf", 'F');
-
     }
 
     /**

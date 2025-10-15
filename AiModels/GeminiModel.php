@@ -40,6 +40,8 @@ Personenbezogene Daten umfassen unter anderem:
 - Geburtsdaten
 - Kontonummern (IBAN)
 - Persönliche Identifikationsnummern
+- Spitznamen
+- Etwaige Ausweisnummern
 
 ## AUSGABEFORMAT ##
 Formatiere deine Ausgabe als einen einzelnen, validen JSON-String in einem Code-Block. Die Ausgabe muss ein Array von Objekten sein. Jedes Objekt repräsentiert ein gefundenes personenbezogenes Datum und muss exakt die folgenden drei Schlüssel enthalten:

@@ -64,6 +64,7 @@
             return;
         }
         echo '<pre>'.$pdfText.'</pre>';
+
         //Schritt 3: Text mit KI prüfen lassen
         try{
             $aiResponse = $pdfToolkit->inputIntoAI();
@@ -75,12 +76,10 @@
         echo "KI-Output:<br>";
         var_dump($aiResponse);
 
-        //Schritt 4: Text anpassen
-        //echo $helper->group_entities($entities);
-       // echo '<pre>'.$pdfToolkit->getCensoredTextFromWordList($aiResponse).'</pre>';
+        //Schritt 4: Informationen Zensieren
         try {
             $pdfToolkit->createCensoredPdfWithBlacklistWithBoxes($aiResponse);
-            $pdfToolkit->createCensoredPdfWithBlacklistWithHTML($aiResponse);
+            //$pdfToolkit->createCensoredPdfWithBlacklistWithHTML($aiResponse);
         } catch (\Mpdf\MpdfException
                 |\setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException
                 |\setasign\Fpdi\PdfParser\Type\PdfTypeException

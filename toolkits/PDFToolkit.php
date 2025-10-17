@@ -29,7 +29,8 @@ class PDFToolkit
     private const string STANDARD_PARSING_TYPE = "parse";
     private array $pdf = array(
         'filePath' => '',
-        'text' => ''
+        'text' => '',
+        'images' => array(),
     );
     private AiModel $aiModel;
 
@@ -98,21 +99,74 @@ class PDFToolkit
             $pdf = $parser->parseFile($this->pdf['filePath']);
             $text = $pdf->getText();
 
-            $command = sprintf("pdfimages -png %s %s", $this->pdf['filePath'], self::TEMP_PATH . "imageParseOutput");
+
+            $uniqid = uniqid();
+            $outputPath = self::TEMP_PATH.$uniqid;
+            /*$command = sprintf("pdfimages -png %s %s", $this->pdf['filePath'], self::TEMP_PATH . "imageParseOutput");
+            exec($command);*/
+
+
+            // pdftohtml mit -zoom 1 gibt positionen von Bildern aus (Angaben sind leider gerundet auf ganze zahlen)
+            // -zoom 1 weil die html standardmäßig auf 1.5 gezoomt is (??????)
+
+            $command = sprintf("pdftohtml -xml -zoom 1 %s %s", $this->pdf['filePath'], $outputPath);
             exec($command);
 
-            $imgStartIndex = 0;
-            while(file_exists(self::TEMP_PATH . "imageParseOutput-".str_pad($imgStartIndex, 3, "0", STR_PAD_LEFT).".png")){
+            $xmlFile = new DOMDocument();
+            $xmlFile->load($outputPath.".xml");
+            $xPath = new DOMXPath($xmlFile);
+            $imagesInPdf = array();
+
+            $langCommand = new Command();
+            $langCommand->options[] = "-l deu"; //Deutsche Sprache prüfen, um Umlaute und 'ß' abzufangen
+
+            $pages = $xPath->query('//page');
+            foreach ($pages as $pageIndex => $page) {
+                var_dump($page);
+                $pageNumber = $pageIndex + 1;
+                $images = $xPath->query('.//image', $page);
+                foreach ($images as $imageIndex => $imageNode) {
+                    try {
+                        $imagesInPdf[$imageIndex]['x'] = $imageNode->getAttribute('left');
+                        $imagesInPdf[$imageIndex]['y'] = $imageNode->getAttribute('top');
+                        $imagesInPdf[$imageIndex]['w'] = $imageNode->getAttribute('width');
+                        $imagesInPdf[$imageIndex]['h'] = $imageNode->getAttribute('height');
+                        $imagesInPdf[$imageIndex]['page'] = $pageNumber;
+
+                        $imagesInPdf[$imageIndex]['text'] = "\n" . new TesseractOCR($imageNode->getAttribute('src'), $langCommand)->run();
+                        $text .= $imagesInPdf[$imageIndex]['text'] . " ";
+                    } catch (TesseractOCRException $e) {
+
+                    }
+                }
+            }
+
+
+
+            /*$imgStartIndex = 0;
+            while(file_exists($outputPath."-".str_pad($imgStartIndex, 3, "0", STR_PAD_LEFT).".png")){
                 $langCommand = new Command();
                 $langCommand->options[] = "-l deu"; //Deutsche Sprache prüfen, um Umlaute und 'ß' abzufangen
                 try{
-                    $text .= "\n".new TesseractOCR(self::TEMP_PATH . "imageParseOutput-".str_pad($imgStartIndex, 3, "0", STR_PAD_LEFT).".png", $langCommand)
-                            ->run()." ";
+                    $imageFile = $outputPath."-".str_pad($imgStartIndex, 3, "0", STR_PAD_LEFT).".png";
+
+                    $imageObject = $xPath->query("/page/image[src".$imageFile."]");
+                    $imagesInPdf[$imgStartIndex]['x'] = $imageObject->getAttribute('left');
+                    $imagesInPdf[$imgStartIndex]['y'] = $imageObject->getAttribute('top');
+                    $imagesInPdf[$imgStartIndex]['w'] = $imageObject->getAttribute('length');
+                    $imagesInPdf[$imgStartIndex]['h'] = $imageObject->getAttribute('height');
+                    $imagesInPdf[$imgStartIndex]['page'] = $xPath->query("/page/image[src".$imageFile."]/parent::page")->getAttribute('number');
+
+                    $imagesInPdf[$imgStartIndex]['text'] = "\n".new TesseractOCR($imageFile, $langCommand)->run();
+                    $text .= $imagesInPdf[$imgStartIndex]['text']." ";
+
                 } catch (TesseractOCRException $e) {
-                    // KEIN TEXT IM BILD GEFUNDEN, ALSO ALLES GUT
+                    // KEIN TEXT IM BILD GEFUNDEN, ALLES IN ORDNUNG, KEIN ERROR NOTWENDIG >:(
                 }
                 $imgStartIndex++;
-            };
+            }*/
+            var_dump($imagesInPdf);
+            $this->pdf["images"] = $imagesInPdf;
         }
 
         if (empty(trim($text))) {
@@ -195,7 +249,7 @@ class PDFToolkit
             "F",
             self::OUTPUT_PATH . basename($this->pdf['filePath'], '.pdf') . "_zensiert.pdf");
 
-        //self::deleteTemp();
+        self::deleteTemp();
     }
 
     /**
@@ -213,7 +267,6 @@ class PDFToolkit
 
         //1.
         $coordinatesArray = $this->getCoordinatesOfStrings($blacklist);
-        var_dump($coordinatesArray);
 
         //2.
         $this->drawCensorBoxes($coordinatesArray);
@@ -223,13 +276,19 @@ class PDFToolkit
             self::OUTPUT_PATH.basename($this->pdf['filePath'], '.pdf')."_blackBoxes.pdf",
             self::OUTPUT_PATH.basename($this->pdf['filePath'], '.pdf')."_flattened.pdf");
 
-        //self::deleteTemp();
+        self::deleteTemp();
     }
 
 
     private function getCoordinatesOfStrings(array $blacklist): array
     {
-        var_dump($blacklist);
+        /*
+            1 inch = 72 points  //TODO: ist das immer so?
+            1 inch = 25.4 mm
+            Also, mm = points * (25.4 / 72)
+         */
+        $pointToMm = 25.4 / 72;
+
         // 1. Bounding-Box HTML generieren, um Positionen zu finden
         $outputHtmlFile = self::TEMP_PATH . uniqid() . '.html';
         $command = sprintf('pdftotext -bbox %s %s', escapeshellarg($this->pdf['filePath']), $outputHtmlFile);
@@ -279,12 +338,6 @@ class PDFToolkit
                         ];
 
                         // 4. PT zu mm Konvertierung für mPDF
-                        /*
-                            1 inch = 72 points  //TODO: ist das immer so?
-                            1 inch = 25.4 mm
-                            Also, mm = points * (25.4 / 72)
-                         */
-                        $pointToMm = 25.4 / 72;
                         $x_mm = $bbox['xMin'] * $pointToMm;
                         $y_mm = $bbox['yMin'] * $pointToMm;
                         $width_mm = ($bbox['xMax'] - $bbox['xMin']) * $pointToMm;
@@ -299,6 +352,26 @@ class PDFToolkit
                         ];
 
                         $i += $numSearchWords - 1;
+                    }
+                }
+            }
+        }
+
+        //Bildtexte durchsuchen
+        foreach($this->pdf['images'] as $imageIndex => $image) {
+            foreach ($blacklist as $searchText) {
+                $searchWords = explode(' ', $searchText);
+                foreach($searchWords as $wordIndex => $word) {
+                    if(array_key_exists('text', $image) &&
+                        stristr(strtolower($image['text']), strtolower($word))) {
+                        echo "prüfe ob ".$word." im Bildtext ".$image['text']." vorkommt <br>";
+                        $foundLocations[$image['page']][] = [
+                            'x' => $image['x'] * $pointToMm,
+                            'y' => $image['y'] * $pointToMm,
+                            'w' => $image['w'] * $pointToMm,
+                            'h' => $image['h'] * $pointToMm,
+                            'text' => $searchText
+                        ];
                     }
                 }
             }
@@ -320,7 +393,7 @@ class PDFToolkit
             // 300 DPI ist ein guter Kompromiss zwischen Qualität und Dateigröße.
             $imagick->setResolution(300, 300);
 
-            // Lade alle Seiten aus der PDF mit den schwarzen Boxen
+            // Lade alle Seiten aus dem PDF mit schwarzen Boxen
             $imagick->readImage($sourcePdfPath);
 
             $imagick->setImageFormat('pdf');
@@ -346,6 +419,7 @@ class PDFToolkit
 
         $pageNumber = 1;
         foreach ($coordinates as $page) {
+            if($pageNumber > 1) $pdf->AddPage();
             $tplID = $pdf->importPage($pageNumber++);
             $pdf->useTemplate($tplID);
             foreach($page as $word){
@@ -357,14 +431,13 @@ class PDFToolkit
                     0,
                 'F');
             }
-            $pdf->AddPage();
         }
-
         $pdf->Output(self::OUTPUT_PATH . basename($this->pdf['filePath'], '.pdf')."_blackBoxes.pdf", 'F');
     }
 
     private static function deleteTemp() : void
     {
+        //return;
         $dir = self::TEMP_PATH;
         if(file_exists($dir)){
             $di = new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS);
@@ -373,6 +446,5 @@ class PDFToolkit
                 $file->isDir() ?  rmdir($file) : unlink($file);
             }
         }
-
     }
 }

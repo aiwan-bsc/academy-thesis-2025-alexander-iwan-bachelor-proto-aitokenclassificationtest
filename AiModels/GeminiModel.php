@@ -18,6 +18,7 @@ class GeminiModel implements AiModel
     public string $name = "GeminiModel";
     private string $key;
 
+
     public function __construct()
     {
         $this->key = json_decode(file_get_contents(__DIR__."/keys_private.json"), true)[0]["api_key"];
